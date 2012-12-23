@@ -1,0 +1,16 @@
+/* CSS declarations go here */
+div.box {
+    position:absolute;
+    border:2px solid black;
+    width:1.5em;
+    height:1.5em;
+    text-align:center;
+    line-height:1.5em;
+}
+
+div.box.selected {
+    border:2px solid purple;
+    -webkit-box-shadow: 0em 0em 1px 1px purple;
+    -moz-box-shadow: 0em 0em 1px 1px purple;
+    box-shadow: 0em 0em 1px 1px purple;
+}
