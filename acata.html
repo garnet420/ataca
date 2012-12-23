@@ -1,0 +1,44 @@
+<head>
+  <title>acata</title>
+</head>
+
+<body>
+  <div id = "header">
+    <h1>Acata</h1>
+  </div>
+
+  <div id = "side-panel">
+    {{>puzzles}}
+  </div>
+
+  <div id = "main-panel">
+    <h2> This is the content of your currently selected puzzle:</h2>
+    {{>current_puzzle}}
+  </div>
+  
+</body>
+
+<template name = "current_puzzle">
+    <div class = "display">
+      {{#if any_puzzle_selected}}
+      {{current_puzzle}}
+      {{/if}}
+    </div>
+</template>
+
+<template name = "puzzles">
+  <div id = "puzzles">  
+    {{#each puzzles}}
+    <div class = "puzzle {{selected}}">
+      <a class = "puzzle-name {{name_class}}" href="/{{_id}}">
+	  {{name}}
+	</a>
+    </div>
+    {{/each}}
+  </div>
+
+  <div id="createPuzzle">
+    <input type="text" id="new-puzzle" placeholder="New Puzzle Title" />
+  </div>
+
+</template>
