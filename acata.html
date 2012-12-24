@@ -1,5 +1,5 @@
 <head>
-  <title>acata</title>
+  <title>Acata</title>
 </head>
 
 <body>
@@ -7,7 +7,15 @@
     <h1>Acata</h1>
   </div>
 
+<!-- the login buttons should be in their own div-->
+  {{loginButtons align="right"}}
+
+  <div id = "test">
+    <p>test div</p>
+    {{>user}}
+  </div>
   <div id = "side-panel">
+    <h3>List of puzzles</h3>
     {{>puzzles}}
   </div>
 
@@ -41,4 +49,11 @@
     <input type="text" id="new-puzzle" placeholder="New Puzzle Title" />
   </div>
 
+</template>
+
+<template name = "user">
+  <p>Users logged in:</p>
+  {{#each otherUsers}}
+  <a class = "user" href="">{{username}}</a>
+  {{/each}}
 </template>
