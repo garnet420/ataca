@@ -1,10 +1,14 @@
 Puzzles = new Meteor.Collection("puzzles");
 
+Meteor.publish("puzzles", function () {
+  return Puzzles.find();
+});
+
 Meteor.startup(function () {
     // code to run on server at startup
 
 
-
+    console.log("restarting");
     // remove this line when there are actual puzzles in the database
     Puzzles.remove({});
 
