@@ -50,6 +50,26 @@ if (Meteor.isClient) {
 		new_text = act.old_text;
 	    Boxes.update(act.box_id, {$set: {text: new_text}});
 	    ById(act.box_id).text(new_text);
+	} else if (act.type == "create_boxes") {
+	    if (!reverse) {
+		for (var idx = 0; idx < act.where.length ; ++idx) {
+		    Boxes.insert({x:act.where[idx].x,
+				  y:act.where[idx].y, text:' '});
+		}
+	    } else {
+		new_act = {type: "delete_boxes", where:act.where};
+		executeAction(new_act, false);
+	    }
+	} else if (act.type == "delete_boxes") {
+	    if (!reverse) {
+		for (var idx = 0; idx < act.where.length ; ++idx) {
+		    Boxes.remove({x:act.where[idx].x,
+				  y:act.where[idx].y, text:' '});
+		}
+	    } else {
+		new_act = {type: "create_boxes", where:act.where};
+		executeAction(new_act, false);
+	    }
 	}
     }
 
@@ -72,6 +92,12 @@ if (Meteor.isClient) {
 	    old_text: box.text
 	});
 	return false;
+    }
+
+    var createBoxes = function(to_add) {
+	addAction({
+	    type: "create_boxes",
+	    where: to_add});
     }
 
     var keyPress = function(evt) {
@@ -118,7 +144,7 @@ if (Meteor.isClient) {
 	Meteor.autosubscribe(function() {
 	    var boxes = Boxes.find({});
 	    boxes.forEach(function(box) {
-		var jq = $("#"+box._id);
+		var jq = ById(box._id);
 		if (jq.size() == 0)
 		{
 		    console.log("new box!");
@@ -128,14 +154,21 @@ if (Meteor.isClient) {
 		    }).addClass("box").
 			text(box.text).
 			click(boxClicked).
-			appendTo("body");
-		    jq = $("#"+box._id);
+			appendTo("#grid");
+		    jq = ById(box._id);
 		}
-		console.log(box._id);
-		jq.css("top", box.y+"em").css("left", box.x+"em");
+//		console.log(box._id);
+		jq.css("top", box.y*gridSpacing+"px").
+		    css("left", box.x*gridSpacing+"px");
 	    });
 	});
+
+	Boxes.find({}).observe({removed: function(old, idx) {
+	    ById(old._id).remove();
+	}});
+
 	$(document).keypress(keyPress);
+	setupGridDesign();
     });
     
 }
@@ -146,8 +179,8 @@ if (Meteor.isServer) {
       Boxes.remove({});
       Actions.remove({});
       EditStatus.remove({});
-      Boxes.insert({x:15, y:3, text:'x'});
-      Boxes.insert({x:15, y:4.5, text:' '});
+      Boxes.insert({x:10, y:2, text:'x'});
+      Boxes.insert({x:10, y:3, text:' '});
       EditStatus.insert({action:-1});
     // code to run on server at startup
   });
