@@ -3,12 +3,29 @@
 </head>
 
 <body>
+  {{> main}}
+</body>
+
+<template name = "main">
+  {{#if editing}}
+  {{> editor}}
+  {{else}}
+  {{> overview}}
+  {{/if}}
+</template>
+
+<template name = "editor">
+</template>
+
+<template name = "overview">
   <div id = "header">
     <h1>Acata</h1>
   </div>
-
-<!-- the login buttons should be in their own div-->
+  
+  <!-- the login buttons should be in their own div-->
+  <div>
   {{loginButtons align="right"}}
+  </div>
 
   <div id = "test">
     <p>test div</p>
@@ -23,8 +40,7 @@
     <h2> This is the content of your currently selected puzzle:</h2>
     {{>current_puzzle}}
   </div>
-  
-</body>
+</template>
 
 <template name = "current_puzzle">
     <div class = "display">

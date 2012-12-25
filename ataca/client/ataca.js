@@ -2,6 +2,7 @@
 //something fades back to "unclicked" color slowly over time
 
 //users
+Puzzles = new Meteor.Collection("puzzles");
 
 var displayName = function(user) {
     return "user name 1";
@@ -19,6 +20,10 @@ Accounts.ui.config({
 });
 
 ////user stuff
+
+Template.main.editing = function() {
+    return false;
+}
 
 Template.user.userId = function () {
     //returns currently logged in user
