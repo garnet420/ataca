@@ -1,8 +1,18 @@
 Puzzles = new Meteor.Collection("puzzles");
+Actions = new Meteor.Collection("actions");
+Boxes = new Meteor.Collection("boxes");
+EditStatus = new Meteor.Collection("edit_status");
 
 Meteor.publish("puzzles", function () {
   return Puzzles.find();
 });
+
+Meteor.publish("boxes", function(puzzle_id) {
+    return Boxes.find({puzzle_id: puzzle_id});
+});
+Meteor.publish("actions", function() { return Actions.find(); });
+Meteor.publish("edit_status", function() { return EditStatus.find(); });
+
 
 Meteor.startup(function () {
     // code to run on server at startup
@@ -28,5 +38,14 @@ Meteor.startup(function () {
 	for (var i = 0; i < data.length; i++) {
 	    var puzzle_id = Puzzles.insert({name: data[i].name, contents: data[i].contents});
 	}
+
+	console.log("derp");
+	Boxes.remove({});
+	Actions.remove({});
+	EditStatus.remove({});
+	Boxes.insert({x:10, y:2, text:'x', puzzle_id: puzzle_id});
+	Boxes.insert({x:10, y:3, text:' ', puzzle_id: puzzle_id});
+	EditStatus.insert({action:-1});
+
     }
   })

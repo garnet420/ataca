@@ -20,7 +20,6 @@ var PuzzleRouter = Backbone.Router.extend({
 	Session.set("puzzle_id", puzzle_id);
     },
     setPuzzle: function (puzzle_id) {
-	console.log("setPuzzle");
 	this.navigate(puzzle_id, true);
     }
 });
@@ -40,7 +39,6 @@ Meteor.autosubscribe(function() {
     if (!Session.get("puzzles_loaded")) return;
 
     if (Puzzles.findOne(pid)) {
-	console.log('"'+pid + '"'+" found");
 	Session.set("editing", true);
     } else {
 	console.log('"'+pid + '"'+" not found");
@@ -64,6 +62,7 @@ Template.editor.current_puzzle = function(){
 }
 
 Meteor.startup(function () {
+    console.log('ataca');
     Backbone.history.start({pushState: true});
 });
 
