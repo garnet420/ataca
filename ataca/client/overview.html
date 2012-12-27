@@ -1,12 +1,23 @@
 <template name = "overview">
-  <div id = "header">
-    <h1>Acata</h1>
-  </div>
-  
-  <!-- the login buttons should be in their own div-->
-  <div>
-  {{loginButtons align="right"}}
-  </div>
+  <ul id = "header">
+    <li><a href="/home">Acata</a></li>
+    <li>LOGO<!--add logo design here--></li>
+    <li id="login_buttons">
+      <!--if user logged in, show something more personal than the accounts-ui offers, such as a welcome message, and making their name take them to their profile page?  -->
+      {{loginButtons align="right"}}
+    </li>
+  </ul>
+
+  <ul id = "navbar">
+    <li><a href = "/home">Find Puzzles</a></li>
+    <li class = "{{hidden}}"><a href = "/home">Write a Puzzle</a></li>
+    <li class = "{{hidden}}"><a href = "/home">Bookmarks</a></li>
+    <li class= "{{hidden}}"><a href = "/home">My Puzzles</a></li>
+    <li class="{{hidden}}"><a href = "/home">Testsolving</a></li>
+    <li class = "{{hidden}}"><a href = "/home">Earnings</a></li>    
+    <li class = "{{hidden}}"><a href = "/home">Profile</a></li>
+    <li class="help"><a href = "/home">Help</a></li>
+  </ul>
 
   <div id = "test">
     <p>test div</p>
@@ -16,7 +27,8 @@
     <h3>List of puzzles</h3>
     {{>puzzles}}
   </div>
-
+  
+  
   <div id = "main-panel">
     <h2> This is the content of your currently selected puzzle:</h2>
   </div>
@@ -52,4 +64,11 @@
   {{#each otherUsers}}
   <a class = "user" href="">{{username}}</a>
   {{/each}}
+</template>
+
+<template name="footer">
+  <ul id = "footer">
+    <li><a href="/home">Acata</a></li>
+    <li><a href="/home">Help</a></li>
+  </ul>
 </template>
