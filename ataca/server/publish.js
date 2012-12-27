@@ -1,4 +1,4 @@
-x`Puzzles = new Meteor.Collection("puzzles");
+Puzzles = new Meteor.Collection("puzzles");
 Actions = new Meteor.Collection("actions");
 Boxes = new Meteor.Collection("boxes");
 EditStatus = new Meteor.Collection("edit_status");
