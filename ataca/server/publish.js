@@ -1,4 +1,4 @@
-Puzzles = new Meteor.Collection("puzzles");
+x`Puzzles = new Meteor.Collection("puzzles");
 Actions = new Meteor.Collection("actions");
 Boxes = new Meteor.Collection("boxes");
 EditStatus = new Meteor.Collection("edit_status");
@@ -10,8 +10,14 @@ Meteor.publish("puzzles", function () {
 Meteor.publish("boxes", function(puzzle_id) {
     return Boxes.find({puzzle_id: puzzle_id});
 });
-Meteor.publish("actions", function() { return Actions.find(); });
-Meteor.publish("edit_status", function() { return EditStatus.find(); });
+
+Meteor.publish("actions", function(puzzle_id, user_id) {
+    return Actions.find({puzzle_id: puzzle_id, user_id:user_id});
+});
+
+Meteor.publish("edit_status", function(puzzle_id, user_id) {
+    return EditStatus.find({puzzle_id: puzzle_id, user_id:user_id});
+});
 
 
 Meteor.startup(function () {
@@ -21,7 +27,7 @@ Meteor.startup(function () {
     console.log("restarting");
     // remove this line when there are actual puzzles in the database
     Puzzles.remove({});
-
+    
     if (Puzzles.find().count() === 0) {
 	var data = [
 	    {name: "Puzzle 1",
@@ -45,7 +51,6 @@ Meteor.startup(function () {
 	EditStatus.remove({});
 	Boxes.insert({x:10, y:2, text:'x', puzzle_id: puzzle_id});
 	Boxes.insert({x:10, y:3, text:' ', puzzle_id: puzzle_id});
-	EditStatus.insert({action:-1});
 
     }
   })

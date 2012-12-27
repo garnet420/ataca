@@ -31,7 +31,6 @@ var setupGridDesign = function() {
 
     var dragDiv = $("#grid div.dragbox_parent");
     if (!dragDiv.length) {
-	console.log("creating drag div");
 	dragDiv = $("<div/>").addClass("dragbox_parent").appendTo("#grid");
     }
     var currentBox = null;
@@ -45,7 +44,6 @@ var setupGridDesign = function() {
 	{
 	    if (!dragPieces.hasOwnProperty(i))
 	    {
-		console.log("new drag box");
 		dragPieces[i] = $("<div/>").addClass("dragbox").
 		    appendTo(dragDiv);
 	    }
@@ -67,7 +65,6 @@ var setupGridDesign = function() {
     };	
 
     $("#grid").mousedown(function(evt) {
-	console.log("mouse down");
 	dragDiv.show();
 	var click = gridPos(evt);
 	var in_box_x = (click.x % gridSpacing)/gridSpacing;

@@ -2,26 +2,55 @@ Actions = new Meteor.Collection("actions");
 Boxes = new Meteor.Collection("boxes");
 EditStatus = new Meteor.Collection("edit_status");
 
-Meteor.subscribe("actions");
-Meteor.subscribe("edit_status");
+Meteor.autosubscribe(function() {
+    Meteor.subscribe("actions",
+		     Session.get("puzzle_id"),
+		     Meteor.userId());
+    Meteor.subscribe("edit_status",
+		     Session.get("puzzle_id"),
+		     Meteor.userId());
+});
+
 
 var ById = function(id) {
     return $("#"+id);
 }
 
 var selectedBox = null;
-var boxClicked = function(evt) {
-    if (selectedBox == this) return;
-    if (selectedBox)
-    {
+
+var selectBoxViaDOM = function(dom) {
+    if (selectedBox) {
 	$(selectedBox).removeClass("selected");
     }
-    $(this).addClass("selected");
-    selectedBox = this;
+    $(dom).addClass("selected");
+    selectedBox = dom;
+}
+
+var boxClicked = function(evt) {
+    if (selectedBox == this) return;
+    selectBoxViaDOM(this);
+}
+
+var editStatus = function() {
+    var es = EditStatus.findOne({});
+    if (!es)
+    {
+	console.log("inserting blanks es");
+	console.log(Session.get('puzzle_id')+" "+Meteor.userId());
+	if (Session.get('puzzle_id') && Meteor.userId())
+	{
+	    es = {puzzle_id: Session.get('puzzle_id'),
+		  user_id:   Meteor.userId(),
+		  action:   -1};
+	    es._id = EditStatus.insert(es);
+	}
+	return es;
+    }
+    return es;
 }
 
 var handleUndo = function() {
-    var es = EditStatus.findOne({});
+    var es = editStatus();
     if (!es || es.action < 0) return;
     var act = Actions.findOne({index: es.action});
     if (act)
@@ -33,14 +62,14 @@ var handleUndo = function() {
 }
 
 var handleRedo = function() {
-    var es = EditStatus.findOne({});
+    var es = editStatus();
     if (!es) return;
     var act = Actions.findOne({index: es.action + 1});
     if (act)
     {
 	executeAction(act,false);
 	boxClicked.apply(ById(act.box_id));
-	EditStatus.update(es._id, {$inc: {action: 1}});	    
+	EditStatus.update(es._id, {$inc: {action: 1}});
     }
 }
 
@@ -79,9 +108,13 @@ var executeAction = function(act, reverse) {
 }
 
 var addAction = function(act) {
-    var es = EditStatus.findOne({});
-    Actions.remove({index: {$gt: es.action}});
+    var es = editStatus();
+    if (!es) return;
+    var uid = Meteor.userId(), pid = Session.get('puzzle_id');
+    Actions.remove({user_id: uid, puzzle_id: pid, index: {$gt: es.action}});
     act.index = es.action + 1;
+    act.user_id = Meteor.userId();
+    act.puzzle_id = Session.get('puzzle_id');
     Actions.insert(act);
     EditStatus.update(es._id, {$inc: {action: 1}});
     executeAction(act, false);
@@ -127,6 +160,27 @@ var keyPress = function(evt) {
     return true;
 }
 
+var keyDown = function(evt) {
+    if (!selectedBox) return;
+    var kc = evt.keyCode;
+    // arrow key
+    if (kc == 37 || kc == 38 || kc == 39 || kc == 40) {
+	var dx = 0, dy = 0;
+	if (kc == 37)      dx = -1;
+	else if (kc == 38) dy = -1;
+	else if (kc == 39) dx =  1;
+	else if (kc == 40) dy =  1;
+	var cbox = Boxes.findOne(selectedBox.id);
+	if (cbox) {
+	    nbox = Boxes.findOne({puzzle_id: Session.get('puzzle_id'),
+				  x : cbox.x + dx,
+				  y : cbox.y + dy});
+	    if (nbox)
+		selectBoxViaDOM(document.getElementById(nbox._id));
+	}
+    }
+}
+
 Template.actions_view.actions = function() {
     return Actions.find({}, {sort: {index:1}});
 }
@@ -145,15 +199,12 @@ Template.commands.events({
 });
 
 Meteor.autosubscribe(function() {
-    console.log("running");
     Meteor.subscribe("boxes", Session.get("puzzle_id"));
     var boxes = Boxes.find({});
-    console.log(boxes.count());
     boxes.forEach(function(box) {
 	var jq = ById(box._id);
 	if (jq.size() == 0)
 	{
-	    console.log("new box!");
 	    // create a new box
 	    $("<div/>", {
 		id:box._id
@@ -161,7 +212,6 @@ Meteor.autosubscribe(function() {
 		text(box.text).
 		click(boxClicked).
 		appendTo("#grid");
-	    console.log($("#grid div").length + " boxes in grid");
 	    jq = ById(box._id);
 	}
 	//		console.log(box._id);
@@ -170,14 +220,18 @@ Meteor.autosubscribe(function() {
     });
 });
 
-Boxes.find({}).observe({removed: function(old, idx) {
-    ById(old._id).remove();
-}});
+Boxes.find({}).observe({
+    removed: function(old, idx) {
+	ById(old._id).remove();
+    },
+    changed: function(newDoc, id, oldDoc) {
+	console.log(newDoc);
+    }});
 
 Template.editor.created = function() {
     Template.editor.rendered = function() {
-	console.log("key");
 	$(document).keypress(keyPress);
+	$(document).keydown(keyDown);
 	setupGridDesign();
 	Template.editor.rendered = undefined;
     }
@@ -186,4 +240,5 @@ Template.editor.created = function() {
 Template.editor.destroyed = function() {
     console.log("unkey");
     $(ducument).keypress(null);
+    $(document).keydown(null);
 }
