@@ -1,15 +1,10 @@
-var displayName = function(user) {
-    return "user name 1";
-}
-
-
+Meteor.subscribe("AllUsers");
 
 Session.set('puzzle_id', null);
 
 //determine whether to show items in navbar depending on the user
-
 Template.overview.hidden = function(){
-    return "hidden"
+    return "hidden";
 }
 
 
@@ -24,12 +19,17 @@ Accounts.ui.config({
 
 Template.user.userId = function () {
     //returns currently logged in user
-    return Meteor.user().username;
+    if (Meteor.user() != null) { 
+	return Meteor.user().username;
+    }
+    else{ 
+	return "not logged in";
+    }
 }
 
 Template.user.otherUsers = function (){
     //returns other logged in users
-    return Meteor.users.find({}, {sort: {username: 1}});
+    return Meteor.users.find({});
 }
 
 ///////////puzzles list

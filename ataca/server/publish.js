@@ -7,21 +7,15 @@ Meteor.publish("puzzles", function () {
   return Puzzles.find();
 });
 
-Meteor.publish("allUsers", function(){
+Meteor.publish("AllUsers", function(){
     return Meteor.users.find({});
 });
 
 Meteor.publish("boxes", function(puzzle_id) {
     return Boxes.find({puzzle_id: puzzle_id});
 });
-
-Meteor.publish("actions", function(puzzle_id, user_id) {
-    return Actions.find({puzzle_id: puzzle_id, user_id:user_id});
-});
-
-Meteor.publish("edit_status", function(puzzle_id, user_id) {
-    return EditStatus.find({puzzle_id: puzzle_id, user_id:user_id});
-});
+Meteor.publish("actions", function() { return Actions.find(); });
+Meteor.publish("edit_status", function() { return EditStatus.find(); });
 
 
 Meteor.startup(function () {
@@ -31,7 +25,7 @@ Meteor.startup(function () {
     console.log("restarting");
     // remove this line when there are actual puzzles in the database
     Puzzles.remove({});
-    
+
     if (Puzzles.find().count() === 0) {
 	var data = [
 	    {name: "Puzzle 1",
@@ -55,6 +49,7 @@ Meteor.startup(function () {
 	EditStatus.remove({});
 	Boxes.insert({x:10, y:2, text:'x', puzzle_id: puzzle_id});
 	Boxes.insert({x:10, y:3, text:' ', puzzle_id: puzzle_id});
+	EditStatus.insert({action:-1});
 
     }
   })
