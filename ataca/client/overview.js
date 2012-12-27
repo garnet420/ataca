@@ -6,6 +6,13 @@ var displayName = function(user) {
 
 Session.set('puzzle_id', null);
 
+//determine whether to show items in navbar depending on the user
+
+Template.overview.hidden = function(){
+    return "hidden"
+}
+
+
 //meteor widget for accounts (must configure for external services)
 Accounts.ui.config({
     requestPermissions: {
