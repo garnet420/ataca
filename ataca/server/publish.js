@@ -7,6 +7,10 @@ Meteor.publish("puzzles", function () {
   return Puzzles.find();
 });
 
+Meteor.publish("allUsers", function(){
+    return Meteor.users.find({});
+});
+
 Meteor.publish("boxes", function(puzzle_id) {
     return Boxes.find({puzzle_id: puzzle_id});
 });
