@@ -7,24 +7,27 @@ Meteor.publish("puzzles", function () {
   return Puzzles.find();
 });
 
-Meteor.publish("boxes", function(puzzle_id) {
-    return Boxes.find({puzzle_id: puzzle_id});
+Meteor.publish("AllUsers", function(){
+    return Meteor.users.find({});
 });
 
-Meteor.publish("actions", function(puzzle_id, user_id) {
-    return Actions.find({puzzle_id: puzzle_id, user_id:user_id});
-});
-
+<<<<<<< HEAD
 Meteor.publish("edit_status", function(puzzle_id) {
     return EditStatus.find({puzzle_id: puzzle_id});
+=======
+Meteor.publish("boxes", function(puzzle_id) {
+    return Boxes.find({puzzle_id: puzzle_id});
+>>>>>>> c6b645e0f52bb84605a3c242620cf7f4ab69a8a5
 });
+Meteor.publish("actions", function() { return Actions.find(); });
+Meteor.publish("edit_status", function() { return EditStatus.find(); });
 
 
 Meteor.startup(function () {
     console.log("restarting");
     // remove this line when there are actual puzzles in the database
     Puzzles.remove({});
-    
+
     if (Puzzles.find().count() === 0) {
 	var data = [
 	    {name: "Puzzle 1",
