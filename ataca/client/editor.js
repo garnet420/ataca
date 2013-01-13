@@ -50,6 +50,7 @@ var handleUndo = function() {
     var es = myEditStatus();
     if (!es || es.action < 0) return;
     var act = Actions.findOne({index: es.action});
+    console.log(act);
     if (act)
     {
 	executeAction(act, true);
@@ -184,6 +185,11 @@ var keyDown = function(evt) {
 	return false;
     }
     return true;
+}
+
+Template.edit_status.index = function() {
+    var es = EditStatus.findOne({user_id: Meteor.userId()});
+    return es && es.action;
 }
 
 Template.commands.events({

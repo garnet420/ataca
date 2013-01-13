@@ -1,5 +1,6 @@
 <template name = "editor">
   {{> commands}}
+  {{> edit_status}}
   <div id="grid" class="editor_grid_class">
 </template>
 
@@ -10,3 +11,6 @@
   <input id="fill_button" type="button" value="Fill" />
 </template>
 
+<template name="edit_status">
+  <div> index = {{index}} </div>
+</template>

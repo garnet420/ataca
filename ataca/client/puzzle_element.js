@@ -118,16 +118,18 @@ PuzzleElements.create_box = function(obj) {
 	    action.new_mode = 'answer';
 	} else {
 	    action.new_mode = 'list';
+	    var ins_idx = 0;
 	    if (obj.text_mode === 'list') {
-		for (var i = 0; i < obj.text.length; ++i) {
-		    if (obj.text.charAt(i) === c) {
-			action.new_text = obj.text.substring(0,i) + 
-			    obj.text.substring(i+1);
+		for ( ; ins_idx < obj.text.length; ++ins_idx) {
+		    if (obj.text.charAt(ins_idx) === c) {
+			action.new_text = obj.text.substring(0, ins_idx) + 
+			    obj.text.substring(ins_inx + 1);
 			addAction(action);
+//			this.possibilities.
 			return true;
-		    } else if (obj.text.charAt(i) > c) {
-			action.new_text = obj.text.substring(0,i) +
-			    c + obj.text.substring(i);
+		    } else if (obj.text.charAt(ins_idx) > c) {
+			action.new_text = obj.text.substring(0, ins_idx) +
+			    c + obj.text.substring(ins_idx);
 			addAction(action);
 			return true;
 		    }

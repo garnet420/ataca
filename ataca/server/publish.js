@@ -11,16 +11,17 @@ Meteor.publish("AllUsers", function(){
     return Meteor.users.find({});
 });
 
-<<<<<<< HEAD
+Meteor.publish("actions", function(puzzle_id, user_id) {
+    return Actions.find({puzzle_id: puzzle_id, user_id:user_id});
+});
+
 Meteor.publish("edit_status", function(puzzle_id) {
     return EditStatus.find({puzzle_id: puzzle_id});
-=======
+});
+
 Meteor.publish("boxes", function(puzzle_id) {
     return Boxes.find({puzzle_id: puzzle_id});
->>>>>>> c6b645e0f52bb84605a3c242620cf7f4ab69a8a5
 });
-Meteor.publish("actions", function() { return Actions.find(); });
-Meteor.publish("edit_status", function() { return EditStatus.find(); });
 
 
 Meteor.startup(function () {
@@ -49,6 +50,7 @@ Meteor.startup(function () {
 	Boxes.remove({});
 	Actions.remove({});
 	EditStatus.remove({});
+
 	Boxes.insert({type: 'box', x:10, y:2, text:'x',
 		      text_mode: 'answer',
 		      puzzle_id: puzzle_id});
