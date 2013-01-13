@@ -91,6 +91,7 @@ PuzzleElements.create_box = function(obj) {
     ret.possibilities = PuzzleElements.possibilities_boxes(ret);
     ret.answer = PuzzleElements.answer_box(ret);
     ret.update = function(obj) {
+	this.jq.css('background-color', obj.bgcolor);
 	this.jq.css("top", obj.y*gridSpacing+"px").
 	    css("left", obj.x*gridSpacing+"px");
 	console.log('updating ' + obj.text);
@@ -107,25 +108,36 @@ PuzzleElements.create_box = function(obj) {
     ret.db_obj = function() {
 	return Boxes.findOne(obj._id);
     }
+    ret.selected = function() {
+	this.jq.addClass("selected");
+    }
+    ret.deselected = function() {
+	this.jq.removeClass("selected");
+    }
     ret.keypress = function(c) {
 	var obj = this.db_obj();
-	var action = {type: 'text',
-		      box_id: obj._id,
-		      old_text: obj.text,
-		      old_mode: obj.text_mode};
-	if (entry_mode === 'fill') {
+	if (entry_mode === 'answer') {
+	    var action = {type: 'text',
+			  box_id: obj._id,
+			  old_text: obj.text,
+			  old_mode: obj.text_mode};
 	    action.new_text = c;
 	    action.new_mode = 'answer';
-	} else {
+	    addAction(action);
+	    return true;
+	} else if (entry_mode === 'number') {
+	    var action = {type: 'text',
+			  box_id: obj._id,
+			  old_text: obj.text,
+			  old_mode: obj.text_mode};
 	    action.new_mode = 'list';
 	    var ins_idx = 0;
 	    if (obj.text_mode === 'list') {
 		for ( ; ins_idx < obj.text.length; ++ins_idx) {
 		    if (obj.text.charAt(ins_idx) === c) {
 			action.new_text = obj.text.substring(0, ins_idx) + 
-			    obj.text.substring(ins_inx + 1);
+			    obj.text.substring(ins_idx + 1);
 			addAction(action);
-//			this.possibilities.
 			return true;
 		    } else if (obj.text.charAt(ins_idx) > c) {
 			action.new_text = obj.text.substring(0, ins_idx) +
@@ -138,12 +150,20 @@ PuzzleElements.create_box = function(obj) {
 	    } else {
 		action.new_text = c;
 	    }
+	    addAction(action);
+	    return true;
 	}
-	addAction(action);
-	return true;
+	else if (entry_mode == 'bgcolor') {
+	    var col = '#ffffff';
+	    if (c == 'k')
+		col = '#000000';
+	    addAction({type: 'bgcolor', box_id: obj._id,
+		       old_color: obj.bgcolor, new_color: col});
+	    return true;
+	}
     }
     ret.backspace = function(c) {
-	if (entry_mode == 'fill') {
+	if (entry_mode == 'answer') {
 	    addAction({type: 'text',
 		       box_id: obj._id,
 		       new_text: '',
@@ -156,7 +176,7 @@ PuzzleElements.create_box = function(obj) {
 
 PuzzleElements.select = function(id) {
     if (this.selected_element)
-	this.selected_element.jq.removeClass("selected");
+	this.selected_element.deselected();
     broadcastSelection(id);
     if (!id)
     {
@@ -164,7 +184,7 @@ PuzzleElements.select = function(id) {
 	return;
     }
     var obj = this.e[id];
-    obj.jq.addClass("selected");
+    obj.selected();
     this.selected_element = obj;
 }
 

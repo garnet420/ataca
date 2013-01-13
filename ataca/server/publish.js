@@ -53,9 +53,11 @@ Meteor.startup(function () {
 
 	Boxes.insert({type: 'box', x:10, y:2, text:'x',
 		      text_mode: 'answer',
+		      bgcolor: '#ffffff',
 		      puzzle_id: puzzle_id});
 	Boxes.insert({type: 'box', x:10, y:3, text:'123456789abc',
 		      text_mode: 'list',
+		      bgcolor: '#ffffff',
 		      puzzle_id: puzzle_id});
 
     }

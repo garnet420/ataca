@@ -81,13 +81,19 @@ var executeAction = function(act, reverse) {
 	console.log(new_text);
 	Boxes.update(act.box_id,
 		     {$set: {text: new_text, text_mode: new_mode}});
+    } else if (act.type === 'bgcolor') {
+	var new_col = reverse ? act.old_color : act.new_color;
+	Boxes.update(act.box_id,
+		     {$set: {bgcolor: new_col}});
     } else if (act.type == "create_boxes") {
 	if (!reverse) {
 	    for (var idx = 0; idx < act.where.length ; ++idx) {
 		Boxes.insert({type:'box',
 			      x:act.where[idx].x,
 			      y:act.where[idx].y,
-			      text:' ',
+			      text:'',
+			      text_mode:'answer',
+			      bgcolor: '#ffffff',
 			      puzzle_id:Session.get('puzzle_id')
 			     });
 	    }
@@ -133,7 +139,7 @@ var createBoxes = function(to_add) {
 	where: to_add});
 }
 
-var entry_mode = 'fill';
+var entry_mode = 'answer';
 
 var keyPress = function(evt) {
     var c = null;
@@ -202,8 +208,11 @@ Template.commands.events({
     'click #number_button' : function() {
 	entry_mode = 'number';
     },
-    'click #fill_button' : function() {
-	entry_mode = 'fill';
+    'click #answer_button' : function() {
+	entry_mode = 'answer';
+    },
+    'click #bgcolor_button' : function() {
+	entry_mode = 'bgcolor';
     }
 });
 

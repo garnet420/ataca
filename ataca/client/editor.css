@@ -53,7 +53,7 @@ div.pe_box.selected {
     z-index: 1;
 }
 
-div.pe_box.otheruser_selected {
+div.pe_box.otheruser_selected:not(.selected){
     border:2px solid gray;
     -webkit-box-shadow: 0px 0px 1px 1px gray;
     -moz-box-shadow: 0px 0px 1px 1px gray;
