@@ -15,15 +15,12 @@ Meteor.publish("actions", function(puzzle_id, user_id) {
     return Actions.find({puzzle_id: puzzle_id, user_id:user_id});
 });
 
-Meteor.publish("edit_status", function(puzzle_id, user_id) {
-    return EditStatus.find({puzzle_id: puzzle_id, user_id:user_id});
+Meteor.publish("edit_status", function(puzzle_id) {
+    return EditStatus.find({puzzle_id: puzzle_id});
 });
 
 
 Meteor.startup(function () {
-    // code to run on server at startup
-
-
     console.log("restarting");
     // remove this line when there are actual puzzles in the database
     Puzzles.remove({});
@@ -49,8 +46,12 @@ Meteor.startup(function () {
 	Boxes.remove({});
 	Actions.remove({});
 	EditStatus.remove({});
-	Boxes.insert({x:10, y:2, text:'x', puzzle_id: puzzle_id});
-	Boxes.insert({x:10, y:3, text:' ', puzzle_id: puzzle_id});
+	Boxes.insert({type: 'box', x:10, y:2, text:'x',
+		      text_mode: 'answer',
+		      puzzle_id: puzzle_id});
+	Boxes.insert({type: 'box', x:10, y:3, text:'123456789abc',
+		      text_mode: 'list',
+		      puzzle_id: puzzle_id});
 
     }
   })

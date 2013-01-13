@@ -3,36 +3,31 @@ Boxes = new Meteor.Collection("boxes");
 EditStatus = new Meteor.Collection("edit_status");
 
 Meteor.autosubscribe(function() {
-    Meteor.subscribe("actions",
-		     Session.get("puzzle_id"),
-		     Meteor.userId());
-    Meteor.subscribe("edit_status",
-		     Session.get("puzzle_id"),
-		     Meteor.userId());
+    if (Session.get('puzzle_id')) {
+	Meteor.subscribe("actions",
+			 Session.get("puzzle_id"),
+			 Meteor.userId());
+	Meteor.subscribe("edit_status", Session.get("puzzle_id"));
+	Meteor.subscribe("boxes", Session.get("puzzle_id"));
+    }
 });
 
 
-var ById = function(id) {
-    return $("#"+id);
-}
 
-var selectedBox = null;
+var selections = {};
 
-var selectBoxViaDOM = function(dom) {
-    if (selectedBox) {
-	$(selectedBox).removeClass("selected");
-    }
-    $(dom).addClass("selected");
-    selectedBox = dom;
-}
+/*Meteor.autosubscribe(function() {
+    EditStatus.find({}).forEach(function(es) {
+	
+	console.log(es);
+	if (es.selection_id) {
+	    ById(es.selection_id).addClass("selected");
+	}
+    });
+});*/
 
-var boxClicked = function(evt) {
-    if (selectedBox == this) return;
-    selectBoxViaDOM(this);
-}
-
-var editStatus = function() {
-    var es = EditStatus.findOne({});
+var myEditStatus = function() {
+    var es = EditStatus.findOne({user_id: Meteor.userId()});
     if (!es)
     {
 	console.log("inserting blanks es");
@@ -41,7 +36,9 @@ var editStatus = function() {
 	{
 	    es = {puzzle_id: Session.get('puzzle_id'),
 		  user_id:   Meteor.userId(),
-		  action:   -1};
+		  action:   -1,
+		  selection_id : null
+		 };
 	    es._id = EditStatus.insert(es);
 	}
 	return es;
@@ -50,25 +47,27 @@ var editStatus = function() {
 }
 
 var handleUndo = function() {
-    var es = editStatus();
+    var es = myEditStatus();
     if (!es || es.action < 0) return;
     var act = Actions.findOne({index: es.action});
     if (act)
     {
 	executeAction(act, true);
-	boxClicked.apply(ById(act.box_id));
+	if (act.hasOwnProperty('box_id'))
+	    PuzzleElements.select(act.box_id);
 	EditStatus.update(es._id, {$inc: {action: -1}});
     }
 }
 
 var handleRedo = function() {
-    var es = editStatus();
+    var es = myEditStatus();
     if (!es) return;
     var act = Actions.findOne({index: es.action + 1});
     if (act)
     {
 	executeAction(act,false);
-	boxClicked.apply(ById(act.box_id));
+	if (act.hasOwnProperty('box_id'))
+	    PuzzleElements.select(act.box_id);
 	EditStatus.update(es._id, {$inc: {action: 1}});
     }
 }
@@ -76,15 +75,16 @@ var handleRedo = function() {
 var executeAction = function(act, reverse) {
     if (act.type == "text")
     {
-	var new_text = act.new_text;
-	if (reverse)
-	    new_text = act.old_text;
-	Boxes.update(act.box_id, {$set: {text: new_text}});
-	ById(act.box_id).text(new_text);
+	var new_text = reverse ? act.old_text : act.new_text;
+	var new_mode = reverse ? act.old_mode : act.new_mode;
+	console.log(new_text);
+	Boxes.update(act.box_id,
+		     {$set: {text: new_text, text_mode: new_mode}});
     } else if (act.type == "create_boxes") {
 	if (!reverse) {
 	    for (var idx = 0; idx < act.where.length ; ++idx) {
-		Boxes.insert({x:act.where[idx].x,
+		Boxes.insert({type:'box',
+			      x:act.where[idx].x,
 			      y:act.where[idx].y,
 			      text:' ',
 			      puzzle_id:Session.get('puzzle_id')
@@ -107,8 +107,14 @@ var executeAction = function(act, reverse) {
     }
 }
 
+var broadcastSelection = function(id) {
+    var es = myEditStatus();
+    if (!es) return;
+    EditStatus.update(es._id, {$set: {selection_id: id}});
+}
+
 var addAction = function(act) {
-    var es = editStatus();
+    var es = myEditStatus();
     if (!es) return;
     var uid = Meteor.userId(), pid = Session.get('puzzle_id');
     Actions.remove({user_id: uid, puzzle_id: pid, index: {$gt: es.action}});
@@ -120,23 +126,13 @@ var addAction = function(act) {
     executeAction(act, false);
 }
 
-var boxKeyPress = function(id, chr) {
-    var box = Boxes.findOne(id);
-    if (!box) return true;
-    addAction({
-	type: "text",
-	box_id: id,
-	new_text: chr,
-	old_text: box.text
-    });
-    return false;
-}
-
 var createBoxes = function(to_add) {
     addAction({
 	type: "create_boxes",
 	where: to_add});
 }
+
+var entry_mode = 'fill';
 
 var keyPress = function(evt) {
     var c = null;
@@ -151,18 +147,25 @@ var keyPress = function(evt) {
     }
     if (c)
     {
-	var handledByBox = false;
-	if (selectedBox)
-	    handledByBox = !boxKeyPress(selectedBox.id, c);
+	var handled = false;
+	if (PuzzleElements.selected_element)
+	    handled = PuzzleElements.selected_element.keypress(c);
 
-	return false;
+	return !handled;
     }
     return true;
 }
 
 var keyDown = function(evt) {
-    if (!selectedBox) return;
     var kc = evt.keyCode;
+    // We do not let the browser grab backspace ever, because that
+    // is the back button and fuck that noise
+    if (!PuzzleElements.selected_element) return kc != 8;
+
+    if (kc == 8) {
+	PuzzleElements.selected_element.backspace();
+	return false;
+    }
     // arrow key
     if (kc == 37 || kc == 38 || kc == 39 || kc == 40) {
 	var dx = 0, dy = 0;
@@ -170,23 +173,17 @@ var keyDown = function(evt) {
 	else if (kc == 38) dy = -1;
 	else if (kc == 39) dx =  1;
 	else if (kc == 40) dy =  1;
-	var cbox = Boxes.findOne(selectedBox.id);
+	var cbox = PuzzleElements.selected_element.db_obj();
 	if (cbox) {
 	    nbox = Boxes.findOne({puzzle_id: Session.get('puzzle_id'),
 				  x : cbox.x + dx,
 				  y : cbox.y + dy});
 	    if (nbox)
-		selectBoxViaDOM(document.getElementById(nbox._id));
+		PuzzleElements.select(nbox._id);
 	}
+	return false;
     }
-}
-
-Template.actions_view.actions = function() {
-    return Actions.find({}, {sort: {index:1}});
-}
-
-Template.edit_status_view.edit_statuses = function () {
-    return EditStatus.find({});
+    return true;
 }
 
 Template.commands.events({
@@ -195,50 +192,88 @@ Template.commands.events({
     },
     'click #redo_button' : function() {
 	handleRedo();
+    },
+    'click #number_button' : function() {
+	entry_mode = 'number';
+    },
+    'click #fill_button' : function() {
+	entry_mode = 'fill';
     }
 });
 
-Meteor.autosubscribe(function() {
-    Meteor.subscribe("boxes", Session.get("puzzle_id"));
-    var boxes = Boxes.find({});
-    boxes.forEach(function(box) {
-	var jq = ById(box._id);
-	if (jq.size() == 0)
-	{
-	    // create a new box
-	    $("<div/>", {
-		id:box._id
-	    }).addClass("box").
-		text(box.text).
-		click(boxClicked).
-		appendTo("#grid");
-	    jq = ById(box._id);
+var EditorContext = function() {
+    var ret = {};
+    ret.box_obs = Boxes.find({}).observe({
+	removed: function(old, idx) {
+	    PuzzleElements.destroy(old._id);
+	},
+	added: function(doc, idx) {
+	    PuzzleElements.create(doc);
+	},
+	changed: function(doc, idx, old) {
+	    PuzzleElements.e[doc._id].update(doc);
 	}
-	//		console.log(box._id);
-	jq.css("top", box.y*gridSpacing+"px").
-	    css("left", box.x*gridSpacing+"px");
     });
-});
+    
+    ret.es_obs = EditStatus.find({}).observe({
+	removed: function(old, idx) {
+	    if (old.puzzle_id != Session.get('puzzle_id'))
+		return;
+	    if (old.user_id == Meteor.userId())
+		return;
+	    if (old.selection_id)
+		PuzzleElements.otheruser_deselect(old.selection_id);
+	},
+	added: function(doc, idx) {
+	    if (doc.puzzle_id != Session.get('puzzle_id'))
+		return;
+	    if (doc.user_id == Meteor.userId())
+		return;
+	    if (doc.selection_id)
+		PuzzleElements.otheruser_select(doc.selection_id);
+	},
+	changed: function(doc, idx, old) {
+	    if (doc.puzzle_id != Session.get('puzzle_id'))
+		return;
+	    if (doc.user_id == Meteor.userId())
+		return;
+	    if (old.selection_id)
+		PuzzleElements.otheruser_deselect(old.selection_id);
+	    if (doc.selection_id)
+		PuzzleElements.otheruser_select(doc.selection_id);	    
+	}});
+    ret.document = document;
+    $(document).keypress(keyPress);
+    $(document).keydown(keyDown);    
+    ret.stop = function() {
+	this.es_obs.stop();
+	this.box_obs.stop();
+	if (this.document) {
+	    $(this.ducument).keypress(null);
+	    $(this.document).keydown(null);
+	}
+	PuzzleElements.destroy_all();
+    }
+    return ret;
+};
 
-Boxes.find({}).observe({
-    removed: function(old, idx) {
-	ById(old._id).remove();
-    },
-    changed: function(newDoc, id, oldDoc) {
-	console.log(newDoc);
-    }});
+var editor_context=null;
 
 Template.editor.created = function() {
+    console.log('created');
     Template.editor.rendered = function() {
-	$(document).keypress(keyPress);
-	$(document).keydown(keyDown);
+	console.log('rendered');
 	setupGridDesign();
 	Template.editor.rendered = undefined;
+	editor_context = EditorContext();
     }
 };
 
 Template.editor.destroyed = function() {
     console.log("unkey");
-    $(ducument).keypress(null);
-    $(document).keydown(null);
+    if (editor_context) {
+	console.log('destroy everything');
+	editor_context.stop();
+	editor_context = null;
+    }
 }
