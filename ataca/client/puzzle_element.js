@@ -116,6 +116,7 @@ PuzzleElements.create_box = function(obj) {
     }
     ret.keypress = function(c) {
 	var obj = this.db_obj();
+	entry_mode = Session.get('entrymode');
 	if (entry_mode === 'answer') {
 	    var action = {type: 'text',
 			  box_id: obj._id,

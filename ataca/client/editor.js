@@ -206,13 +206,19 @@ Template.commands.events({
 	handleRedo();
     },
     'click #number_button' : function() {
-	entry_mode = 'number';
+	Session.set('entrymode', 'number');
+	$('.pressed').removeClass("pressed");
+	$('#number_button').addClass("pressed");
     },
     'click #answer_button' : function() {
-	entry_mode = 'answer';
+	Session.set('entrymode', 'answer');
+	$('.pressed').removeClass("pressed");
+	$('#answer_button').addClass("pressed");
     },
     'click #bgcolor_button' : function() {
-	entry_mode = 'bgcolor';
+	Session.set('entrymode', 'bgcolor');
+	$('.pressed').removeClass("pressed");
+	$('#bgcolor_button').addClass("pressed");
     }
 });
 

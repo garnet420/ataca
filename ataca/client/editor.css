@@ -9,6 +9,25 @@
     left: 20%;
 }
 
+.option_button {
+    border:1px solid #a0a0f2; -webkit-border-radius: 3px; -moz-border-radius: 3px;border-radius: 3px;
+    font-family:arial, helvetica, sans-serif; 
+    padding: 10px 10px 10px 10px;
+    font-weight:bold; 
+    text-align: center; 
+    color: #000000;
+    background-color: #d2d2f9;
+
+}
+
+.option_button:hover {
+    border:1px solid #7878ed; background-color: #a5a5f3;
+}
+
+.option_button.pressed {
+     background-color: #737373;
+}
+
 div.pe_box {
     position:absolute;
     border:2px solid black;
