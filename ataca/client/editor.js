@@ -91,7 +91,7 @@ var executeAction = function(act, reverse) {
 		Boxes.insert({type:'box',
 			      x:act.where[idx].x,
 			      y:act.where[idx].y,
-			      text:'',
+			      text:{},
 			      text_mode:'answer',
 			      bgcolor: '#ffffff',
 			      puzzle_id:Session.get('puzzle_id')
@@ -105,7 +105,8 @@ var executeAction = function(act, reverse) {
 	if (!reverse) {
 	    for (var idx = 0; idx < act.where.length ; ++idx) {
 		Boxes.remove({x:act.where[idx].x,
-			      y:act.where[idx].y, text:' '});
+			      y:act.where[idx].y,
+			      puzzle_id:Session.get('puzzle_id')});
 	    }
 	} else {
 	    new_act = {type: "create_boxes", where:act.where};
@@ -113,6 +114,17 @@ var executeAction = function(act, reverse) {
 	}
     }
 }
+
+Meteor.autosubscribe(function() {
+    if (Session.get('puzzle_id')) {
+	mm = Session.get('mouse_mode');
+	console.log('mouse mode ' + mm);
+	if (mm === 'draw')
+	    $('#grid').mousedown(GridDesign.draw_boxes_mousedown);
+	else
+	    $('#grid').off('mousedown');
+    }
+});
 
 var broadcastSelection = function(id) {
     var es = myEditStatus();
@@ -205,6 +217,12 @@ Template.commands.events({
     'click #redo_button' : function() {
 	handleRedo();
     },
+    'click #draw_button' : function() {
+	if (!Session.get('mouse_mode') || Session.get('mouse_mode') != 'draw')
+	    Session.set('mouse_mode', 'draw');
+	else
+	    Session.set('mouse_mode', 'none');
+    },    
     'click #number_button' : function() {
 	entry_mode = 'number';
     },

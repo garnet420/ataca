@@ -32,7 +32,6 @@ PuzzleElements.conditional_obj = function(create, destroy) {
 }
 
 PuzzleElements.possibilities_boxes = function(parent) {
-    var list_text = null;
     var ret = PuzzleElements.conditional_obj(
 	/*create*/ function() {
 	    var lt_div = $("<div/>").addClass("pe_list_text");
@@ -44,22 +43,17 @@ PuzzleElements.possibilities_boxes = function(parent) {
 	},
 	/* destroy */ function() {
 	    parent.jq.children('div.pe_list_text').remove();
-	    list_text = null;
 	});
     ret.update = function(obj) {
+	var k = _.sortBy(obj.text, function(o,k) { return k; });
 	if (this.conditional_create(obj.text_mode === 'list' &&
-				    obj.text.length != 0)) {
-	    console.log('^: ' + list_text + ' ' + obj.text);
-	    if (list_text != obj.text) {
-		console.log('changing');
-		parent.jq.children('.pe_list_text').each(function(idx) {
-		    if (idx >= obj.text.length)
-			$(this).text('');
-		    else
-			$(this).text(obj.text[idx]);
-		});
-		list_text = obj.text;
-	    }
+				    k.length != 0)) {
+	    parent.jq.children('.pe_list_text').each(function(idx) {
+		if (idx >= k.length)
+		    $(this).text('');
+		else
+		    $(this).text(k[idx].val).css('color', k[idx].color);
+	    });
 	}
     }
     return ret;
@@ -74,9 +68,15 @@ PuzzleElements.answer_box = function(parent) {
 	    parent.jq.children('div.pe_box_answer').remove();
 	});
     ret.update = function(obj) {
+	var k = Object.keys(obj.text);
 	if (this.conditional_create(obj.text_mode != 'list' &&
-				    obj.text.length != 0))
-	    parent.jq.children('div.pe_box_answer').text(obj.text);
+				    k.length != 0)) {
+	    if (k.length == 1)
+		parent.jq.children('div.pe_box_answer').text(k[0]).
+		css('color', obj.text[k[0]].color);
+	    else
+		throw 'derrrp';
+	}
     }
     return ret;
 }
@@ -120,8 +120,9 @@ PuzzleElements.create_box = function(obj) {
 	    var action = {type: 'text',
 			  box_id: obj._id,
 			  old_text: obj.text,
+			  new_text:{},
 			  old_mode: obj.text_mode};
-	    action.new_text = c;
+	    action.new_text[c] = {val:c, color:'#000000'};
 	    action.new_mode = 'answer';
 	    addAction(action);
 	    return true;
@@ -131,24 +132,16 @@ PuzzleElements.create_box = function(obj) {
 			  old_text: obj.text,
 			  old_mode: obj.text_mode};
 	    action.new_mode = 'list';
-	    var ins_idx = 0;
-	    if (obj.text_mode === 'list') {
-		for ( ; ins_idx < obj.text.length; ++ins_idx) {
-		    if (obj.text.charAt(ins_idx) === c) {
-			action.new_text = obj.text.substring(0, ins_idx) + 
-			    obj.text.substring(ins_idx + 1);
-			addAction(action);
-			return true;
-		    } else if (obj.text.charAt(ins_idx) > c) {
-			action.new_text = obj.text.substring(0, ins_idx) +
-			    c + obj.text.substring(ins_idx);
-			addAction(action);
-			return true;
-		    }
+	    if (obj.text.hasOwnProperty(c)) {
+		if (obj.text_mode != 'list') {
+		    action.new_text = {};
+		    action.new_text[c] = {val:c, color:'#000000'};
+		} else {		
+		    action.new_text = _.omit(obj.text, c);
 		}
-		action.new_text = obj.text + c;
 	    } else {
-		action.new_text = c;
+		action.new_text = _.clone(obj.text);
+		action.new_text[c] = {val:c, color:'#000000'};
 	    }
 	    addAction(action);
 	    return true;
