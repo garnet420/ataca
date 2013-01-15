@@ -12,20 +12,6 @@ Meteor.autosubscribe(function() {
     }
 });
 
-
-
-var selections = {};
-
-/*Meteor.autosubscribe(function() {
-    EditStatus.find({}).forEach(function(es) {
-	
-	console.log(es);
-	if (es.selection_id) {
-	    ById(es.selection_id).addClass("selected");
-	}
-    });
-});*/
-
 var myEditStatus = function() {
     var es = EditStatus.findOne({user_id: Meteor.userId()});
     if (!es)
@@ -50,7 +36,6 @@ var handleUndo = function() {
     var es = myEditStatus();
     if (!es || es.action < 0) return;
     var act = Actions.findOne({index: es.action});
-    console.log(act);
     if (act)
     {
 	executeAction(act, true);
@@ -78,7 +63,6 @@ var executeAction = function(act, reverse) {
     {
 	var new_text = reverse ? act.old_text : act.new_text;
 	var new_mode = reverse ? act.old_mode : act.new_mode;
-	console.log(new_text);
 	Boxes.update(act.box_id,
 		     {$set: {text: new_text, text_mode: new_mode}});
     } else if (act.type === 'bgcolor') {
@@ -118,7 +102,6 @@ var executeAction = function(act, reverse) {
 Meteor.autosubscribe(function() {
     if (Session.get('puzzle_id')) {
 	mm = Session.get('mouse_mode');
-	console.log('mouse mode ' + mm);
 	if (mm === 'draw')
 	    $('#grid').mousedown(GridDesign.draw_boxes_mousedown);
 	else
@@ -224,13 +207,19 @@ Template.commands.events({
 	    Session.set('mouse_mode', 'none');
     },    
     'click #number_button' : function() {
-	entry_mode = 'number';
+	Session.set('entrymode', 'number');
+	$('.pressed').removeClass("pressed");
+	$('#number_button').addClass("pressed");
     },
     'click #answer_button' : function() {
-	entry_mode = 'answer';
+	Session.set('entrymode', 'answer');
+	$('.pressed').removeClass("pressed");
+	$('#answer_button').addClass("pressed");
     },
     'click #bgcolor_button' : function() {
-	entry_mode = 'bgcolor';
+	Session.set('entrymode', 'bgcolor');
+	$('.pressed').removeClass("pressed");
+	$('#bgcolor_button').addClass("pressed");
     }
 });
 

@@ -20,7 +20,7 @@
   </ul>
 
   <div id = "test">
-    <p>test div</p>
+    <p>You are currently logged in as</p>
     {{>user}}
   </div>
   <div id = "side-panel">
@@ -60,6 +60,7 @@
 </template>
 
 <template name = "user">
+  {{userId}}
   <p>Users logged in:</p>
   {{#each otherUsers}}
   <a class = "user" href="">{{username}}</a>
