@@ -116,8 +116,8 @@ PuzzleElements.create_box = function(obj) {
     }
     ret.keypress = function(c) {
 	var obj = this.db_obj();
-	entry_mode = Session.get('entrymode');
-	if (entry_mode === 'answer') {
+	var entry_mode = Session.get('entry_mode');
+	if (entry_mode === 'entry_mode_answer') {
 	    var action = {type: 'text',
 			  box_id: obj._id,
 			  old_text: obj.text,
@@ -127,7 +127,7 @@ PuzzleElements.create_box = function(obj) {
 	    action.new_mode = 'answer';
 	    addAction(action);
 	    return true;
-	} else if (entry_mode === 'number') {
+	} else if (entry_mode === 'entry_mode_small') {
 	    var action = {type: 'text',
 			  box_id: obj._id,
 			  old_text: obj.text,
@@ -147,7 +147,7 @@ PuzzleElements.create_box = function(obj) {
 	    addAction(action);
 	    return true;
 	}
-	else if (entry_mode == 'bgcolor') {
+	else if (entry_mode == 'entry_mode_bgcolor') {
 	    var col = '#ffffff';
 	    if (c == 'k')
 		col = '#000000';

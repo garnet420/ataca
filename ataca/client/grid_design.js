@@ -1,5 +1,7 @@
 var gridSpacing = 48;
 
+var GridDesign = {};
+
 var setupGridDesign = function() {
     console.log("setting up grid design");
     var magicRegion = 0.25;
@@ -64,7 +66,7 @@ var setupGridDesign = function() {
 		y: evt.pageY - gpos.top};
     };	
 
-    $("#grid").mousedown(function(evt) {
+    GridDesign.draw_boxes_mousedown = function(evt) {
 	dragDiv.show();
 	var click = gridPos(evt);
 	var in_box_x = (click.x % gridSpacing)/gridSpacing;
@@ -141,5 +143,7 @@ var setupGridDesign = function() {
 	    dragDiv.hide();
 	    createBoxesFromBox(xyToBox(click.x, click.y));
 	}
-    });
+    };
 }
+
+

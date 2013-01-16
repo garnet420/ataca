@@ -99,16 +99,6 @@ var executeAction = function(act, reverse) {
     }
 }
 
-Meteor.autosubscribe(function() {
-    if (Session.get('puzzle_id')) {
-	mm = Session.get('mouse_mode');
-	if (mm === 'draw')
-	    $('#grid').mousedown(GridDesign.draw_boxes_mousedown);
-	else
-	    $('#grid').off('mousedown');
-    }
-});
-
 var broadcastSelection = function(id) {
     var es = myEditStatus();
     if (!es) return;
@@ -133,8 +123,6 @@ var createBoxes = function(to_add) {
 	type: "create_boxes",
 	where: to_add});
 }
-
-var entry_mode = 'answer';
 
 var keyPress = function(evt) {
     var c = null;
@@ -193,6 +181,13 @@ Template.edit_status.index = function() {
     return es && es.action;
 }
 
+Template.editor.events({
+    'mousedown #grid' : function(evt) {
+	if (Session.equals('mouse_mode', 'draw'))
+	    GridDesign.draw_boxes_mousedown(evt);
+    }
+});
+
 Template.commands.events({
     'click #undo_button' : function() {
 	handleUndo();
@@ -201,25 +196,16 @@ Template.commands.events({
 	handleRedo();
     },
     'click #draw_button' : function() {
-	if (!Session.get('mouse_mode') || Session.get('mouse_mode') != 'draw')
+	console.log('draw clicked');
+
+	if (!Session.get('mouse_mode') || Session.get('mouse_mode') != 'draw') {
 	    Session.set('mouse_mode', 'draw');
-	else
+	} else {
 	    Session.set('mouse_mode', 'none');
-    },    
-    'click #number_button' : function() {
-	Session.set('entrymode', 'number');
-	$('.pressed').removeClass("pressed");
-	$('#number_button').addClass("pressed");
+	}
     },
-    'click #answer_button' : function() {
-	Session.set('entrymode', 'answer');
-	$('.pressed').removeClass("pressed");
-	$('#answer_button').addClass("pressed");
-    },
-    'click #bgcolor_button' : function() {
-	Session.set('entrymode', 'bgcolor');
-	$('.pressed').removeClass("pressed");
-	$('#bgcolor_button').addClass("pressed");
+    'click #entry_modes .option_button' : function() {
+	Session.set('entry_mode', this.id);
     }
 });
 
@@ -236,7 +222,7 @@ var EditorContext = function() {
 	    PuzzleElements.e[doc._id].update(doc);
 	}
     });
-    
+
     ret.es_obs = EditStatus.find({}).observe({
 	removed: function(old, idx) {
 	    if (old.puzzle_id != Session.get('puzzle_id'))
@@ -262,11 +248,11 @@ var EditorContext = function() {
 	    if (old.selection_id)
 		PuzzleElements.otheruser_deselect(old.selection_id);
 	    if (doc.selection_id)
-		PuzzleElements.otheruser_select(doc.selection_id);	    
+		PuzzleElements.otheruser_select(doc.selection_id);
 	}});
     ret.document = document;
     $(document).keypress(keyPress);
-    $(document).keydown(keyDown);    
+    $(document).keydown(keyDown);
     ret.stop = function() {
 	this.es_obs.stop();
 	this.box_obs.stop();
@@ -298,4 +284,18 @@ Template.editor.destroyed = function() {
 	editor_context.stop();
 	editor_context = null;
     }
+}
+
+Template.commands.draw_mode = function() {
+    return Session.get('mouse_mode') === "draw";
+}
+
+Template.commands.entry_mode_selected = function() {
+    return Session.equals('entry_mode', this.id);
+}
+
+Template.commands.entry_modes = function() {
+    return [{id:'entry_mode_small', name:'Small'},
+	    {id:'entry_mode_answer', name:'Answer'},
+	    {id:'entry_mode_bgcolor', name:'BG Color'}]
 }

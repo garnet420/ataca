@@ -51,11 +51,12 @@ Meteor.startup(function () {
 	Actions.remove({});
 	EditStatus.remove({});
 
-	Boxes.insert({type: 'box', x:10, y:2, text:'x',
+	Boxes.insert({type: 'box', x:10, y:2, text:{'x':{color:'#ff0000'}},
 		      text_mode: 'answer',
 		      bgcolor: '#ffffff',
 		      puzzle_id: puzzle_id});
-	Boxes.insert({type: 'box', x:10, y:3, text:'123456789abc',
+	Boxes.insert({type: 'box', x:10, y:3, text:{'1':{val:'1', color:'#007f00'},
+						    '2':{val:'2', color:'#0000ff'}},
 		      text_mode: 'list',
 		      bgcolor: '#ffffff',
 		      puzzle_id: puzzle_id});
