@@ -125,6 +125,17 @@ var createBoxes = function(to_add) {
 }
 
 var keyPress = function(evt) {
+    var d = event.srcElement || event.target;
+
+    // We let text fields get filled out and we reject backspace from not being handled
+    if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT'
+						 || d.type.toUpperCase() === 'PASSWORD')) 
+	|| d.tagName.toUpperCase() === 'TEXTAREA') {
+	return !( d.readOnly || d.disabled );
+    } else if (!PuzzleElements.selected_element) {
+	return false;
+    }
+
     var c = null;
     if (evt.altKey || evt.ctrlKey || evt.metaKey)
 	c = null;
@@ -148,9 +159,25 @@ var keyPress = function(evt) {
 
 var keyDown = function(evt) {
     var kc = evt.keyCode;
-    // We do not let the browser grab backspace ever, because that
-    // is the back button and fuck that noise
-    if (!PuzzleElements.selected_element) return kc != 8;
+    var d = event.srcElement || event.target;
+
+    // We let text fields get filled out and we reject backspace from not being handled
+    if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT'
+						 || d.type.toUpperCase() === 'PASSWORD')) 
+	|| d.tagName.toUpperCase() === 'TEXTAREA') {
+	return !( d.readOnly || d.disabled );
+    } else if (!PuzzleElements.selected_element && kc === 8) {
+	return false;
+    }
+
+    if (kc == 9) {
+	// cycle between answe and small modes
+	if (Session.get('entry_mode') === 'entry_mode_small')
+	    Session.set('entry_mode', 'entry_mode_answer');
+	else if (Session.get('entry_mode') === 'entry_mode_answer')
+	    Session.set('entry_mode', 'entry_mode_small');
+	return false;
+    }
 
     if (kc == 8) {
 	PuzzleElements.selected_element.backspace();
@@ -209,6 +236,20 @@ Template.commands.events({
     }
 });
 
+Template.commands.events(okCancelEvents('#duplicate-puzzle', {
+    ok: function(text, evt) {
+	console.log('Creating puzzle ' + text);
+	var pid = Puzzles.insert({name: text, contents: ''});
+	Boxes.find({puzzle_id: Session.get('puzzle_id')}).forEach(function (obj) {
+	    var new_box = _.clone(obj);
+	    delete(new_box._id);
+	    new_box.puzzle_id = pid;
+	    Boxes.insert(new_box);
+	});	
+	Router.setPuzzle(null);
+    }}));
+
+
 var EditorContext = function() {
     var ret = {};
     ret.box_obs = Boxes.find({}).observe({
@@ -251,14 +292,16 @@ var EditorContext = function() {
 		PuzzleElements.otheruser_select(doc.selection_id);
 	}});
     ret.document = document;
+    $(this.ducument).off('keypress');
+    $(this.document).off('keydown');
     $(document).keypress(keyPress);
     $(document).keydown(keyDown);
     ret.stop = function() {
 	this.es_obs.stop();
 	this.box_obs.stop();
 	if (this.document) {
-	    $(this.ducument).keypress(null);
-	    $(this.document).keydown(null);
+	    $(this.ducument).off('keypress');
+	    $(this.document).off('keydown');
 	}
 	PuzzleElements.destroy_all();
     }
@@ -298,4 +341,8 @@ Template.commands.entry_modes = function() {
     return [{id:'entry_mode_small', name:'Small'},
 	    {id:'entry_mode_answer', name:'Answer'},
 	    {id:'entry_mode_bgcolor', name:'BG Color'}]
+}
+
+Template.commands.duplicate_placeholder = function() {
+    return Session.get('puzzle_id') && ('Copy of ' + Puzzles.findOne(Session.get('puzzle_id')).name);
 }
