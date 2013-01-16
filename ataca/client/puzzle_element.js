@@ -94,7 +94,6 @@ PuzzleElements.create_box = function(obj) {
 	this.jq.css('background-color', obj.bgcolor);
 	this.jq.css("top", obj.y*gridSpacing+"px").
 	    css("left", obj.x*gridSpacing+"px");
-	console.log('updating ' + obj.text);
 	this.possibilities.update(obj);
 	this.answer.update(obj);
     }
@@ -133,13 +132,11 @@ PuzzleElements.create_box = function(obj) {
 			  old_text: obj.text,
 			  old_mode: obj.text_mode};
 	    action.new_mode = 'list';
-	    if (obj.text.hasOwnProperty(c)) {
-		if (obj.text_mode != 'list') {
-		    action.new_text = {};
-		    action.new_text[c] = {val:c, color:'#000000'};
-		} else {		
-		    action.new_text = _.omit(obj.text, c);
-		}
+	    if (obj.text_mode != 'list') {
+		action.new_text = {};
+		action.new_text[c] = {val:c, color:'#000000'};
+	    } else if (obj.text.hasOwnProperty(c)) {
+		action.new_text = _.omit(obj.text, c);
 	    } else {
 		action.new_text = _.clone(obj.text);
 		action.new_text[c] = {val:c, color:'#000000'};
@@ -157,11 +154,14 @@ PuzzleElements.create_box = function(obj) {
 	}
     }
     ret.backspace = function(c) {
-	if (entry_mode == 'answer') {
+	var obj = this.db_obj();
+	if (Session.get('entry_mode') == 'entry_mode_answer') {
 	    addAction({type: 'text',
 		       box_id: obj._id,
-		       new_text: '',
-		       old_text: this.db_obj().text});
+		       new_text: {},
+		       new_mode: 'answer',
+		       old_mode: obj.text_mode,
+		       old_text: obj.text});
 	}
     }
     this.e[obj._id] = ret;
