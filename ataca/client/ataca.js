@@ -14,7 +14,11 @@ Meteor.subscribe("puzzles", function() {
 //////Backbone for tracking puzzle in URL
 var PuzzleRouter = Backbone.Router.extend({
     routes: {
-	":puzzle_id": "main"
+	":puzzle_id": "main",
+	"": "home",
+    },
+    home: function() {
+	Session.set('puzzle_id', null);
     },
     main: function (puzzle_id) {
 	Session.set("puzzle_id", puzzle_id);
